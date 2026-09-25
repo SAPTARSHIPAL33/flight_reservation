@@ -16,7 +16,7 @@ class User(Base):
 
 
 class Airport(Base):
-    __tablename__ = "airports"  # Replaces your 'airport location' table
+    __tablename__ = "airports"
 
     id = Column(Integer, primary_key=True, index=True)
     place = Column(String, unique=True, index=True, nullable=False)

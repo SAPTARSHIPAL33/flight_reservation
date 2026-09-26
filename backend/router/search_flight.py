@@ -6,7 +6,7 @@ from ..flight_management import FlightAVLTree
 router=APIRouter(tags=["SEARCH"])
 
 @router.get("/search",status_code=status.HTTP_200_OK)
-def search_and_sort_flights(travel:schemas.SearchModule=Depends(), db: Session = Depends(database.get_db)):
+def search_and_sort_flights(travel:schemas.SearchModule=Depends(), db: Session = Depends(database.get_db),user:int=Depends(oauth.get_the_user)):
     # 1. Extract all rows for this route from PostgreSQL
     db_flights = db.query(model.Flight).filter(
         model.Flight.source == travel.source,
@@ -25,6 +25,8 @@ def search_and_sort_flights(travel:schemas.SearchModule=Depends(), db: Session =
         root = avl.insert(
             root, 
             flight_id=flight.flight_id, 
+            depart_time=flight.departure_time,
+            arrival_time=flight.arrival_time,
             price=flight.price, 
             seats_available=flight.seats_available
         )

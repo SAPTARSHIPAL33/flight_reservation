@@ -34,4 +34,4 @@ def search_and_sort_flights(travel:schemas.SearchModule=Depends(), db: Session =
     # 4. Perform in-order traversal to get the final sorted list
     sorted_results = avl.get_sorted_flights(root)
 
-    return {"route": f"{source} to {destination}", "flights": sorted_results}
+    return {"route": f"{travel.source} to {travel.destination}", "flights": sorted_results}

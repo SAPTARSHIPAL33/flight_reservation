@@ -113,5 +113,42 @@ class FlightAVLTree:
             
         return result_list
 
-    # The helper functions (get_height, get_balance, left_rotate, right_rotate, get_min_value_node) 
-    # remain exactly the same as your previous implementation.
+    def get_height(self, root):
+        if not root:
+            return 0
+        return root.height
+
+    def get_balance(self, root):
+        if not root:
+            return 0
+        return self.get_height(root.left) - self.get_height(root.right)
+
+    def left_rotate(self, z):
+        y = z.right
+        T2 = y.left
+
+        y.left = z
+        z.right = T2
+
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+
+        return y
+
+    def right_rotate(self, z):
+        y = z.left
+        T3 = y.right
+
+        y.right = z
+        z.left = T3
+
+        z.height = 1 + max(self.get_height(z.left), self.get_height(z.right))
+        y.height = 1 + max(self.get_height(y.left), self.get_height(y.right))
+
+        return y
+
+    def get_min_value_node(self, root):
+        current = root
+        while current.left is not None:
+            current = current.left
+        return current

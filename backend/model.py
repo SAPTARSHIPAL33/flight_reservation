@@ -32,6 +32,7 @@ class Flight(Base):
     arrival_time = Column(DateTime, nullable=False)
     price = Column(Float, nullable=False)
     seats_available = Column(Integer, nullable=False)
+    bookings = relationship("Booking", back_populates="flight")
 
 
 class Booking(Base):

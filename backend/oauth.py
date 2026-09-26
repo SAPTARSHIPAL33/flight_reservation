@@ -41,3 +41,14 @@ def get_the_user(token:str=Depends(oauth2_scheme),db:Session=Depends(database.ge
     info=verify_access_token(token,credentials_exception )
     user = db.query(model.User).filter(model.User.id==info.id).first()
     return user
+
+def require_role(required_role: str):
+    """Dependency factory: returns a dependency that enforces a specific role."""
+    def role_checker(current_user = Depends(get_the_user)):
+        if current_user.role != required_role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. '{required_role}' role required."
+            )
+        return current_user
+    return role_checker

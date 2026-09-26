@@ -10,3 +10,7 @@ class createLogin(BaseModel):
 
 class TokenData(BaseModel):
     id:Optional[int]=0
+
+class SearchModule(BaseModel):
+    source:str
+    destination:str

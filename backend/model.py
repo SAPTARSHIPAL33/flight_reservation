@@ -29,7 +29,7 @@ class Flight(Base):
     flight_id = Column(Integer, primary_key=True, index=True)
     source = Column(String, nullable=False) 
     destination = Column(String, nullable=False)
-    depart_time = Column(DateTime, nullable=False)
+    departure_time = Column(DateTime, nullable=False)
     arrival_time = Column(DateTime, nullable=False)
     price = Column(Float, nullable=False)
     seats_available = Column(Integer, nullable=False)

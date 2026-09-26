@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException, status,APIRouter
 from sqlalchemy.orm import Session
-from .. import schemas,database,model
+from .. import schemas,database,model,oauth
 from ..flight_management import FlightAVLTree
 
 router=APIRouter(tags=["SEARCH"])

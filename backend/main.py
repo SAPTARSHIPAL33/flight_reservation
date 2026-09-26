@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .database import base,engine
-from .routers import search_flight,user,auth
+from .router import search_flight,user,auth
 from . import model 
 
 model.base.metadata.create_all(bind=engine)

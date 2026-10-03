@@ -1,28 +1,3 @@
-"""
-Dijkstra's Algorithm – Shortest Route Between Airports
-========================================================
-Graph module that can be used standalone or built from the database.
-
-Usage (standalone):
-    from backend.dijsktra import AirportGraph
-
-    graph = AirportGraph()
-    graph.add_route("DEL", "BOM", 1148)
-    graph.add_route("BOM", "BLR", 842)
-    graph.add_route("DEL", "BLR", 1740)
-
-    result = graph.shortest_path("DEL", "BLR")
-    # result => {"distance": 1740, "path": ["DEL", "BLR"]}
-
-Usage (from database Flight rows):
-    from backend.dijsktra import AirportGraph
-
-    flights = db.query(Flight).all()
-    graph = AirportGraph.from_flights(flights)
-    result = graph.shortest_path("DEL", "BLR")
-    # result => {"distance": ..., "path": ["DEL", "HYD", "BLR"]}
-"""
-
 from __future__ import annotations
 
 import heapq

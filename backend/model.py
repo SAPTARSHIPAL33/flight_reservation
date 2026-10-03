@@ -18,7 +18,8 @@ class Airport(Base):
     __tablename__ = "airports"
 
     id = Column(Integer, primary_key=True, index=True)
-    place = Column(String, unique=True, index=True, nullable=False)
+    name= Column(String,unique=True,nullable=False)
+    place = Column(String, unique=True, index=True,nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
 
@@ -28,6 +29,7 @@ class Flight(Base):
     flight_id = Column(Integer, primary_key=True, index=True)
     source = Column(String, nullable=False) 
     destination = Column(String, nullable=False)
+    distance= Column(Float, nullable=False)
     departure_time = Column(DateTime, nullable=False)
     arrival_time = Column(DateTime, nullable=False)
     price = Column(Float, nullable=False)
@@ -41,5 +43,6 @@ class Booking(Base):
     flight_id = Column(Integer, ForeignKey("flights.flight_id"), nullable=False)
     passenger_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     status = Column(String, default="confirmed") 
+    created_at=Column(DateTime,nullable=False,default=datetime.now())
     flight = relationship("Flight", back_populates="bookings")
     passenger = relationship("User", back_populates="bookings")

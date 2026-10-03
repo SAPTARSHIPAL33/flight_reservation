@@ -1,10 +1,10 @@
 """
 Dijkstra's Algorithm – Shortest Route Between Airports
 ========================================================
-Standalone graph module.  No database dependency – just pure algorithm.
+Graph module that can be used standalone or built from the database.
 
-Usage:
-    from app.dijkstra import AirportGraph
+Usage (standalone):
+    from backend.dijsktra import AirportGraph
 
     graph = AirportGraph()
     graph.add_route("DEL", "BOM", 1148)
@@ -13,12 +13,21 @@ Usage:
 
     result = graph.shortest_path("DEL", "BLR")
     # result => {"distance": 1740, "path": ["DEL", "BLR"]}
+
+Usage (from database Flight rows):
+    from backend.dijsktra import AirportGraph
+
+    flights = db.query(Flight).all()
+    graph = AirportGraph.from_flights(flights)
+    result = graph.shortest_path("DEL", "BLR")
+    # result => {"distance": ..., "path": ["DEL", "HYD", "BLR"]}
 """
 
 from __future__ import annotations
 
 import heapq
-from typing import Dict, List, Optional, Tuple
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class AirportGraph:
@@ -27,6 +36,59 @@ class AirportGraph:
     def __init__(self) -> None:
         # adjacency list: { airport_code: [(neighbour, distance), ...] }
         self._adj: Dict[str, List[Tuple[str, float]]] = {}
+        # flight index: { (origin, destination): [flight_obj, ...] }
+        # Stores actual Flight ORM objects so we can retrieve details per leg.
+        self._flight_index: Dict[Tuple[str, str], List[Any]] = defaultdict(list)
+
+    # ------------------------------------------------------------------
+    # Build from database Flight rows
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def from_flights(cls, flights: List[Any]) -> "AirportGraph":
+        """
+        Build the graph from a list of Flight ORM objects.
+
+        Each unique (source, destination) pair becomes an edge whose weight
+        is the **cheapest** price among all flights on that leg.  All flight
+        objects are stored in ``_flight_index`` so the caller can look up
+        the actual flights that cover each leg of the shortest path.
+
+        Parameters
+        ----------
+        flights : list
+            Flight ORM rows (must have ``.source``, ``.destination``,
+            ``.price`` attributes).
+
+        Returns
+        -------
+        AirportGraph
+            A fully-constructed graph ready for ``shortest_path()``.
+        """
+        graph = cls()
+
+        # Collect cheapest price per (source, dest) pair
+        cheapest: Dict[Tuple[str, str], float] = {}
+
+        for flight in flights:
+            src = flight.source.upper()
+            dst = flight.destination.upper()
+            key = (src, dst)
+
+            graph._flight_index[key].append(flight)
+
+            # Use the cheapest flight on this leg as the edge weight
+            if key not in cheapest or flight.price < cheapest[key]:
+                cheapest[key] = flight.price
+
+        # Build edges (directed — A→B does NOT imply B→A unless a
+        # return flight exists in the data)
+        for (src, dst), price in cheapest.items():
+            graph.add_airport(src)
+            graph.add_airport(dst)
+            graph._adj[src].append((dst, price))
+
+        return graph
 
     # ------------------------------------------------------------------
     # Graph construction
@@ -173,8 +235,82 @@ class AirportGraph:
             results[airport] = self.shortest_path(source, airport)
         return results
 
+    def shortest_route_detail(
+        self, source: str, target: str
+    ) -> Optional[Dict]:
+        """
+        Find the cheapest route (possibly multi-leg) and return full
+        flight details for every leg.
+
+        Returns
+        -------
+        dict | None
+            {
+              "source": "DEL",
+              "destination": "BLR",
+              "total_price": 5200.0,
+              "num_legs": 2,
+              "path": ["DEL", "HYD", "BLR"],
+              "legs": [
+                {
+                  "leg": 1,
+                  "from": "DEL",
+                  "to": "HYD",
+                  "cheapest_price": 2800.0,
+                  "available_flights": [ ... ]
+                },
+                ...
+              ]
+            }
+        """
+        result = self.shortest_path(source, target)
+        if result is None:
+            return None
+
+        path = result["path"]
+        legs: List[Dict] = []
+
+        for i in range(len(path) - 1):
+            leg_src = path[i]
+            leg_dst = path[i + 1]
+            key = (leg_src, leg_dst)
+
+            # Get stored flight objects for this leg
+            flight_objs = self._flight_index.get(key, [])
+            available = []
+            for f in sorted(flight_objs, key=lambda x: x.price):
+                available.append({
+                    "flight_id": f.flight_id,
+                    "source": f.source,
+                    "destination": f.destination,
+                    "departure_time": str(f.departure_time),
+                    "arrival_time": str(f.arrival_time),
+                    "price": f.price,
+                    "seats_available": f.seats_available,
+                })
+
+            cheapest_price = available[0]["price"] if available else 0.0
+
+            legs.append({
+                "leg": i + 1,
+                "from": leg_src,
+                "to": leg_dst,
+                "cheapest_price": cheapest_price,
+                "available_flights": available,
+            })
+
+        return {
+            "source": path[0],
+            "destination": path[-1],
+            "total_price": result["distance"],
+            "num_legs": len(legs),
+            "path": path,
+            "legs": legs,
+        }
+
     def __repr__(self) -> str:
         return (
             f"AirportGraph(airports={len(self._adj)}, "
             f"routes={sum(len(v) for v in self._adj.values())})"
         )
+

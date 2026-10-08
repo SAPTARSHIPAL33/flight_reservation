@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import heapq
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple

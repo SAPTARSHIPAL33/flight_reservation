@@ -19,8 +19,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = (datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)).isoformat()
-    to_encode.update({"expire": expire})
+    expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
     encoded_data = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_data
 
@@ -37,7 +37,7 @@ def verify_access_token(token:str, credentials_exception):
 
 def get_the_user(token:str=Depends(oauth2_scheme),db:Session=Depends(database.get_db)):
     credentials_exception= HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not vaild credentials", headers={"WWW-Authenticate":"Bearer"})
+            detail="Could not validate credentials", headers={"WWW-Authenticate":"Bearer"})
     info=verify_access_token(token,credentials_exception )
     user = db.query(model.User).filter(model.User.id==info.id).first()
     return user

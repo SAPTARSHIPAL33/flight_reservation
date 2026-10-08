@@ -46,12 +46,14 @@ class SearchModule(BaseModel):
 # ─── Airport Schemas ───
 
 class AirportCreate(BaseModel):
+    name:str
     place:str
     latitude:float
     longitude:float
 
 class AirportResponse(BaseModel):
     id:int
+    name:str
     place:str
     latitude:float
     longitude:float
@@ -65,6 +67,7 @@ class AirportResponse(BaseModel):
 class FlightCreate(BaseModel):
     source:str
     destination:str
+    distance:float
     departure_time:datetime
     arrival_time:datetime
     price:float

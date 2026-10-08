@@ -11,9 +11,7 @@ router = APIRouter(tags=["SEARCH"])
 def find_shortest_route(
     source: str = Query(..., description="Departure airport (e.g. DEL)"),
     destination: str = Query(..., description="Arrival airport (e.g. BLR)"),
-    db: Session = Depends(database.get_db),
-    user: int = Depends(oauth.get_the_user),
-):
+    db: Session = Depends(database.get_db)):
     """
     Find the **cheapest** route between two airports.
 
@@ -83,9 +81,7 @@ def find_shortest_route(
 @router.get("/search", status_code=status.HTTP_200_OK)
 def search_and_sort_flights(
     travel: schemas.SearchModule = Depends(),
-    db: Session = Depends(database.get_db),
-    user: int = Depends(oauth.get_the_user),
-):
+    db: Session = Depends(database.get_db)):
     """
     Search for **direct** flights between two airports, sorted by
     departure time using an AVL tree.

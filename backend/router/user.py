@@ -15,6 +15,11 @@ def create(user: schemas.createUser, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
+@router.get("/user/me", response_model=schemas.UserResponse)
+def get_current_user_profile(current_user: model.User = Depends(oauth.get_the_user)):
+    return current_user
+
+
 @router.delete("/removeUser/{id}",status_code=status.HTTP_204_NO_CONTENT)
 def deleteUser(id:int,db:Session=Depends(get_db),current_user:int=Depends(oauth.get_the_user)):
     user=db.query(model.User).filter(model.User.id==id)
@@ -22,4 +27,4 @@ def deleteUser(id:int,db:Session=Depends(get_db),current_user:int=Depends(oauth.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="No such user")
     user.delete()
     db.commit()
-    return user
+    return user

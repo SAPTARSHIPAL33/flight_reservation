@@ -31,6 +31,9 @@ class createLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    role: Optional[str] = None
+    name: Optional[str] = None
+    user_id: Optional[int] = None
 
 class TokenData(BaseModel):
     id:Optional[int]=0
@@ -94,10 +97,44 @@ class FlightResponse(BaseModel):
         from_attributes = True
 
 
+# ─── Itinerary Schemas ───
+
+class LegResponse(BaseModel):
+    flight_id: int
+    source: str
+    destination: str
+    departure_time: datetime
+    arrival_time: datetime
+    price: float
+    seats_available: int
+
+    class Config:
+        from_attributes = True
+
+class ItineraryResponse(BaseModel):
+    itinerary_id: Optional[str] = None
+    source: str
+    destination: str
+    departure_time: datetime
+    arrival_time: datetime
+    price: float
+    total_price: Optional[float] = None
+    seats_available: int
+    total_stops: int
+    is_fastest_layover: Optional[bool] = False
+    badge: Optional[str] = None
+    legs: list[LegResponse]
+
+    class Config:
+        from_attributes = True
+        extra = "allow"
+
+
 # ─── Booking Schemas ───
 
 class BookingCreate(BaseModel):
-    flight_id:int
+    flight_id: Optional[int] = None
+    flight_ids: Optional[list[int]] = None
 
 class BookingResponse(BaseModel):
     booking_id:int
@@ -107,3 +144,4 @@ class BookingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+

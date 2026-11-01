@@ -55,3 +55,40 @@ class priority_queue:
     # ADDED: Helper for the FastAPI while loop
     def is_empty(self):
         return len(self.heap) == 0
+
+
+def allocate_waiting_seat_min_heap(flight_id: int, db):
+    """
+    Finds the highest-priority waiting-list passenger (earliest created_at timestamp)
+    for the specified flight using the Min-Heap priority queue, and promotes them to 'confirmed'.
+    If no waiting-list passenger exists, increments seats_available on the flight.
+    Returns the promoted booking or None.
+    """
+    from . import model
+
+    waiting_bookings = (
+        db.query(model.Booking)
+        .filter(
+            model.Booking.flight_id == flight_id,
+            model.Booking.status == "waiting_list",
+        )
+        .all()
+    )
+
+    if not waiting_bookings:
+        flight = db.query(model.Flight).filter(model.Flight.flight_id == flight_id).first()
+        if flight:
+            flight.seats_available += 1
+        return None
+
+    pq = priority_queue()
+    for wb in waiting_bookings:
+        pq.enqueue(wb.booking_id, wb.created_at)
+
+    promoted_id = pq.dequeue()
+    if promoted_id:
+        promoted = db.query(model.Booking).filter(model.Booking.booking_id == promoted_id).first()
+        if promoted:
+            promoted.status = "confirmed"
+            return promoted
+    return None

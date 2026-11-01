@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 
 class AirportGraph:
-    """Weighted, undirected graph of airport connections."""
+    """Weighted graph of airport connections supporting shortest path and all routes."""
 
     def __init__(self) -> None:
         # adjacency list: { airport_code: [(neighbour, distance), ...] }
@@ -26,7 +26,7 @@ class AirportGraph:
         Each unique (source, destination) pair becomes an edge whose weight
         is the **cheapest** price among all flights on that leg.  All flight
         objects are stored in ``_flight_index`` so the caller can look up
-        the actual flights that cover each leg of the shortest path.
+        the actual flights that cover each leg of the path.
 
         Parameters
         ----------
@@ -37,7 +37,7 @@ class AirportGraph:
         Returns
         -------
         AirportGraph
-            A fully-constructed graph ready for ``shortest_path()``.
+            A fully-constructed graph ready for routing queries.
         """
         graph = cls()
 
@@ -215,27 +215,6 @@ class AirportGraph:
         """
         Find the cheapest route (possibly multi-leg) and return full
         flight details for every leg.
-
-        Returns
-        -------
-        dict | None
-            {
-              "source": "DEL",
-              "destination": "BLR",
-              "total_price": 5200.0,
-              "num_legs": 2,
-              "path": ["DEL", "HYD", "BLR"],
-              "legs": [
-                {
-                  "leg": 1,
-                  "from": "DEL",
-                  "to": "HYD",
-                  "cheapest_price": 2800.0,
-                  "available_flights": [ ... ]
-                },
-                ...
-              ]
-            }
         """
         result = self.shortest_path(source, target)
         if result is None:
@@ -278,13 +257,131 @@ class AirportGraph:
             "destination": path[-1],
             "total_price": result["distance"],
             "num_legs": len(legs),
+            "num_stops": len(legs) - 1,
             "path": path,
             "legs": legs,
         }
+
+    # ------------------------------------------------------------------
+    # All Paths and All Routes (Direct & Indirect)
+    # ------------------------------------------------------------------
+
+    def find_all_paths(
+        self, source: str, target: str, max_stops: int = 3
+    ) -> List[List[str]]:
+        """
+        Find all simple paths (no cycles) between source and target
+        with at most `max_stops` intermediate stops.
+
+        Parameters
+        ----------
+        source : str
+            IATA code of departure airport.
+        target : str
+            IATA code of arrival airport.
+        max_stops : int, default 3
+            Maximum number of intermediate stops (layovers).
+
+        Returns
+        -------
+        list of list of str
+            List of paths (e.g. [['DEL', 'BLR'], ['DEL', 'HYD', 'BLR']]),
+            ordered by number of stops.
+        """
+        source, target = source.upper(), target.upper()
+
+        if source not in self._adj or target not in self._adj or source == target:
+            return []
+
+        all_paths: List[List[str]] = []
+        visited = {source}
+
+        def dfs(current: str, current_path: List[str]):
+            if current == target:
+                all_paths.append(list(current_path))
+                return
+
+            if len(current_path) - 1 > max_stops:
+                return
+
+            for neighbour, _ in self._adj.get(current, []):
+                if neighbour not in visited:
+                    visited.add(neighbour)
+                    current_path.append(neighbour)
+                    dfs(neighbour, current_path)
+                    current_path.pop()
+                    visited.remove(neighbour)
+
+        dfs(source, [source])
+
+        # Sort: fewer stops first, then alphabetically
+        all_paths.sort(key=lambda p: (len(p), p))
+        return all_paths
+
+    def all_routes_detail(
+        self, source: str, target: str, max_stops: int = 3
+    ) -> List[Dict]:
+        """
+        Find all routes (both direct and multi-leg) between source and target,
+        returning full flight details for every leg.
+        """
+        source, target = source.upper(), target.upper()
+        if source not in self._adj or target not in self._adj:
+            return []
+
+        paths = self.find_all_paths(source, target, max_stops=max_stops)
+        routes: List[Dict] = []
+
+        for path in paths:
+            legs: List[Dict] = []
+            total_price = 0.0
+
+            for i in range(len(path) - 1):
+                leg_src = path[i]
+                leg_dst = path[i + 1]
+                key = (leg_src, leg_dst)
+
+                flight_objs = self._flight_index.get(key, [])
+                available = []
+                for f in sorted(flight_objs, key=lambda x: x.price):
+                    available.append({
+                        "flight_id": f.flight_id,
+                        "source": f.source,
+                        "destination": f.destination,
+                        "departure_time": str(f.departure_time),
+                        "arrival_time": str(f.arrival_time),
+                        "price": f.price,
+                        "seats_available": f.seats_available,
+                    })
+
+                cheapest_price = available[0]["price"] if available else 0.0
+                total_price += cheapest_price
+
+                legs.append({
+                    "leg": i + 1,
+                    "from": leg_src,
+                    "to": leg_dst,
+                    "cheapest_price": cheapest_price,
+                    "available_flights": available,
+                })
+
+            routes.append({
+                "source": path[0],
+                "destination": path[-1],
+                "total_price": total_price,
+                "num_legs": len(legs),
+                "num_stops": len(legs) - 1,
+                "is_direct": len(legs) == 1,
+                "path": path,
+                "legs": legs,
+            })
+
+        # Sort: direct routes first, then by number of stops, then by total price
+        routes.sort(key=lambda r: (r["num_stops"], r["total_price"]))
+        return routes
 
     def __repr__(self) -> str:
         return (
             f"AirportGraph(airports={len(self._adj)}, "
             f"routes={sum(len(v) for v in self._adj.values())})"
         )
-

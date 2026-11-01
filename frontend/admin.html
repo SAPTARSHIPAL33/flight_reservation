@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal — AeroBook</title>
+  <meta name="description" content="AeroBook Administrator Control Center" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: {
+              300: '#8ec1ff', 400: '#599fff', 500: '#3478ff',
+              600: '#1b57f5', 700: '#1443e1',
+            },
+            surface: {
+              200: '#e2e8f0', 800: '#1e293b',
+              900: '#0f172a', 950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    .page-bg {
+      background: linear-gradient(135deg, #020617 0%, #0b1329 50%, #111d4a 100%);
+      min-height: 100vh;
+    }
+
+    .page-bg::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 70%, rgba(52, 120, 255, 0.09) 0%, transparent 45%);
+      pointer-events: none;
+    }
+
+    .form-input {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #fff;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.75rem;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .form-input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(245, 158, 11, 0.2);
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .tab-btn.active {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    #toast {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  </style>
+</head>
+
+<body class="page-bg text-white">
+
+  <!-- ════════════════════ NAVBAR ════════════════════ -->
+  <nav class="fixed top-0 inset-x-0 z-50 glass border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <!-- Brand & Admin Badge -->
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-2">
+          <div
+            class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/25">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <span class="text-xl font-bold tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+        </a>
+        <span
+          class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-500/30 rounded-full">
+          Admin Portal
+        </span>
+      </div>
+
+      <!-- Nav Links -->
+      <div class="flex items-center gap-3">
+        <a href="index.html"
+          class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          Public Search
+        </a>
+        <a href="dashboard.html"
+          class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          Passenger Dashboard
+        </a>
+        <button id="btn-logout"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-300 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-lg transition-all duration-200">
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════ MAIN CONTENT ════════════════════ -->
+  <main class="max-w-7xl mx-auto px-6 pt-28 pb-20 relative z-10">
+
+    <!-- Header Banner -->
+    <div
+      class="glass rounded-2xl p-7 mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5 border-amber-500/20">
+      <div class="flex items-center gap-5">
+        <div
+          class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-xl shadow-amber-500/20 shrink-0">
+          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-white">System Administration</h1>
+            <span id="admin-name-tag" class="text-xs px-2 py-0.5 rounded bg-white/10 text-slate-300">Admin</span>
+          </div>
+          <p class="text-sm text-slate-400 mt-0.5">Manage flights, airport nodes, view real-time bookings & queue
+            allocations.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btn-refresh"
+          class="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white glass rounded-xl border border-white/10 hover:border-amber-400/40 transition-all flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div id="stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Flights</p>
+        <p id="stat-flights" class="text-2xl font-black text-white mt-1">-</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Airports</p>
+        <p id="stat-airports" class="text-2xl font-black text-white mt-1">-</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Registered Users</p>
+        <p id="stat-users" class="text-2xl font-black text-white mt-1">-</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Bookings</p>
+        <p id="stat-bookings" class="text-2xl font-black text-brand-300 mt-1">-</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Confirmed</p>
+        <p id="stat-confirmed" class="text-2xl font-black text-emerald-400 mt-1">-</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Waitlisted</p>
+        <p id="stat-waitlist" class="text-2xl font-black text-amber-400 mt-1">-</p>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+      <button class="tab-btn active px-4 py-2 text-sm font-semibold rounded-xl border border-transparent transition-all"
+        data-tab="flights">
+        ✈ Flights Management
+      </button>
+      <button
+        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl border border-transparent transition-all"
+        data-tab="airports">
+        🌐 Airports (Route Graph)
+      </button>
+      <button
+        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl border border-transparent transition-all"
+        data-tab="bookings">
+        🎟 All Bookings
+      </button>
+    </div>
+
+    <!-- ═══════════════ TAB 1: FLIGHTS ═══════════════ -->
+    <div id="tab-content-flights" class="tab-content">
+      <!-- Create Flight Button & Table Card -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white">Active Flight Inventory</h2>
+        <button id="btn-open-create-flight"
+          class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 rounded-xl shadow-lg shadow-amber-600/25 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add New Flight
+        </button>
+      </div>
+
+      <div class="glass rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead
+              class="bg-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-white/10">
+              <tr>
+                <th class="py-3.5 px-4">Flight ID</th>
+                <th class="py-3.5 px-4">Route</th>
+                <th class="py-3.5 px-4">Departure</th>
+                <th class="py-3.5 px-4">Arrival</th>
+                <th class="py-3.5 px-4">Price</th>
+                <th class="py-3.5 px-4">Available Seats</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="flights-table-body" class="divide-y divide-white/5">
+              <tr>
+                <td colspan="7" class="py-12 text-center text-slate-400">Loading flights...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TAB 2: AIRPORTS ═══════════════ -->
+    <div id="tab-content-airports" class="tab-content hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white">Airport Graph Nodes</h2>
+        <button id="btn-open-create-airport"
+          class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-xl shadow-lg shadow-brand-600/25 flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Register Airport
+        </button>
+      </div>
+
+      <div class="glass rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead
+              class="bg-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-white/10">
+              <tr>
+                <th class="py-3.5 px-4">ID</th>
+                <th class="py-3.5 px-4">Code (IATA)</th>
+                <th class="py-3.5 px-4">Airport Name</th>
+                <th class="py-3.5 px-4">Coordinates (Lat, Lon)</th>
+                <th class="py-3.5 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="airports-table-body" class="divide-y divide-white/5">
+              <tr>
+                <td colspan="5" class="py-12 text-center text-slate-400">Loading airports...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ TAB 3: BOOKINGS ═══════════════ -->
+    <div id="tab-content-bookings" class="tab-content hidden">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold text-white">System Passenger Bookings</h2>
+        <span class="text-xs text-slate-400">Real-time status & waiting list allocations</span>
+      </div>
+
+      <div class="glass rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead
+              class="bg-white/5 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-white/10">
+              <tr>
+                <th class="py-3.5 px-4">Booking ID</th>
+                <th class="py-3.5 px-4">Passenger</th>
+                <th class="py-3.5 px-4">Flight</th>
+                <th class="py-3.5 px-4">Route</th>
+                <th class="py-3.5 px-4">Status</th>
+                <th class="py-3.5 px-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table-body" class="divide-y divide-white/5">
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-400">Loading bookings...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════ MODAL: CREATE / EDIT FLIGHT ═══════════════ -->
+  <div id="flight-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="glass rounded-2xl p-6 sm:p-8 max-w-lg w-full border-amber-500/30 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-5">
+        <h3 id="flight-modal-title" class="text-xl font-bold text-white">Add New Flight</h3>
+        <button id="btn-close-flight-modal" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <form id="flight-form" class="space-y-4">
+        <input type="hidden" id="flight-form-id" />
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Source
+              (Code)</label>
+            <input type="text" id="flight-form-source" required placeholder="e.g. DEL" class="form-input uppercase" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Destination
+              (Code)</label>
+            <input type="text" id="flight-form-destination" required placeholder="e.g. BOM"
+              class="form-input uppercase" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Distance
+              (km)</label>
+            <input type="number" step="0.1" id="flight-form-distance" required placeholder="1148" class="form-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Price (₹)</label>
+            <input type="number" step="1" id="flight-form-price" required placeholder="5500" class="form-input" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Departure
+              Time</label>
+            <input type="datetime-local" id="flight-form-departure" required class="form-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Arrival Time</label>
+            <input type="datetime-local" id="flight-form-arrival" required class="form-input" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Seats
+            Available</label>
+          <input type="number" id="flight-form-seats" required placeholder="60" class="form-input" />
+          <p class="text-[11px] text-slate-500 mt-1">Set to 0 to test waiting-list & Min-Heap queue behavior.</p>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-3">
+          <button type="button" id="btn-cancel-flight"
+            class="px-4 py-2 text-sm text-slate-300 hover:text-white">Cancel</button>
+          <button type="submit" id="btn-save-flight"
+            class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 rounded-xl shadow-lg shadow-amber-600/30">
+            Save Flight
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODAL: CREATE AIRPORT ═══════════════ -->
+  <div id="airport-modal"
+    class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="glass rounded-2xl p-6 sm:p-8 max-w-md w-full border-brand-500/30 shadow-2xl relative">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="text-xl font-bold text-white">Register Airport</h3>
+        <button id="btn-close-airport-modal" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <form id="airport-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Airport Code (e.g.
+            DEL)</label>
+          <input type="text" id="airport-form-place" required placeholder="DEL" class="form-input uppercase" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Airport Name</label>
+          <input type="text" id="airport-form-name" required placeholder="Indira Gandhi International Airport"
+            class="form-input" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Latitude</label>
+            <input type="number" step="0.0001" id="airport-form-lat" required placeholder="28.5562"
+              class="form-input" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Longitude</label>
+            <input type="number" step="0.0001" id="airport-form-lon" required placeholder="77.1000"
+              class="form-input" />
+          </div>
+        </div>
+
+        <div class="pt-3 flex items-center justify-end gap-3">
+          <button type="button" id="btn-cancel-airport"
+            class="px-4 py-2 text-sm text-slate-300 hover:text-white">Cancel</button>
+          <button type="submit" id="btn-save-airport"
+            class="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 rounded-xl shadow-lg shadow-brand-600/30">
+            Register Airport
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-medium shadow-xl"></div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+
+</html>

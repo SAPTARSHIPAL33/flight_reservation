@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AeroBook — Find & Book Flights Instantly</title>
+  <meta name="description" content="Search, compare, and book flights effortlessly with AeroBook. Find the best deals on domestic and international flights." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#eef5ff',
+              100: '#d9e8ff',
+              200: '#bcd8ff',
+              300: '#8ec1ff',
+              400: '#599fff',
+              500: '#3478ff',
+              600: '#1b57f5',
+              700: '#1443e1',
+              800: '#1736b6',
+              900: '#19328f',
+              950: '#142057',
+            },
+            surface: {
+              50:  '#f8fafc',
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts — Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; }
+
+    /* Animated gradient background */
+    .hero-gradient {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #142057 70%, #19328f 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-gradient::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(52, 120, 255, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(89, 159, 255, 0.1) 0%, transparent 40%),
+                  radial-gradient(circle at 60% 80%, rgba(27, 87, 245, 0.08) 0%, transparent 45%);
+      animation: pulseGlow 8s ease-in-out infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0%   { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1;   transform: scale(1.05); }
+    }
+
+    /* Glassmorphism card */
+    .glass {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Floating dots decoration */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(52, 120, 255, 0.25);
+      animation: float 6s ease-in-out infinite;
+    }
+    .dot:nth-child(2) { animation-delay: -2s; animation-duration: 8s; }
+    .dot:nth-child(3) { animation-delay: -4s; animation-duration: 7s; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-20px) scale(1.1); }
+    }
+
+    /* Smooth input focus ring */
+    .search-input {
+      transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .search-input:focus {
+      box-shadow: 0 0 0 3px rgba(52, 120, 255, 0.3);
+      border-color: #3478ff;
+    }
+
+    /* Card entrance animation */
+    .flight-card {
+      animation: cardSlideUp 0.5s ease-out both;
+    }
+    @keyframes cardSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(52, 120, 255, 0.2);
+      border-top-color: #3478ff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Button hover lift */
+    .btn-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 120, 255, 0.3);
+    }
+    .btn-lift:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body class="bg-surface-950 text-white min-h-screen">
+
+  <!-- ════════════════════ NAVBAR ════════════════════ -->
+  <nav id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <!-- Brand -->
+      <a href="index.html" id="brand-logo" class="flex items-center gap-2 group">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25 group-hover:shadow-brand-500/40 transition-shadow">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.768 59.768 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5" />
+          </svg>
+        </div>
+        <span class="text-xl font-bold tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+      </a>
+
+      <!-- Auth Buttons (toggled by nav-auth.js snippet below) -->
+      <div id="nav-guest" class="flex items-center gap-3">
+        <a href="login.html" id="btn-login"
+           class="px-5 py-2 text-sm font-medium text-surface-200 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          Log In
+        </a>
+        <a href="signup.html" id="btn-signup"
+           class="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-lg shadow-lg shadow-brand-600/25 hover:shadow-brand-500/40 transition-all duration-200">
+          Sign Up
+        </a>
+      </div>
+
+      <!-- Logged-in nav (hidden by default, shown when token exists) -->
+      <div id="nav-user" class="hidden items-center gap-3">
+        <a href="admin.html" id="btn-admin-nav"
+           class="hidden px-4 py-2 text-sm font-semibold text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg transition-all duration-200">
+          Admin Portal
+        </a>
+        <a href="dashboard.html" id="btn-dashboard"
+           class="px-5 py-2 text-sm font-medium text-surface-200 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          Dashboard
+        </a>
+        <button id="btn-logout-nav"
+                class="px-5 py-2 text-sm font-semibold text-red-300 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-lg transition-all duration-200">
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ════════════════════ HERO SECTION ════════════════════ -->
+  <section class="hero-gradient min-h-[92vh] flex flex-col items-center justify-center px-6 pt-24 pb-16 relative">
+    <!-- Decorative floating dots -->
+    <div class="dot w-3 h-3" style="top:18%; left:12%;"></div>
+    <div class="dot w-2 h-2" style="top:30%; right:15%;"></div>
+    <div class="dot w-4 h-4" style="bottom:25%; left:22%;"></div>
+
+    <!-- Tagline -->
+    <div class="relative z-10 text-center mb-10 max-w-3xl">
+      <p class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold uppercase tracking-widest text-brand-300 bg-brand-500/10 border border-brand-500/20 rounded-full">
+        ✈ Smart Flight Search
+      </p>
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
+        Your Journey Starts<br/>
+        <span class="bg-gradient-to-r from-brand-400 via-brand-300 to-cyan-400 bg-clip-text text-transparent">With a Single Search</span>
+      </h1>
+      <p class="mt-5 text-lg text-surface-200/80 max-w-xl mx-auto leading-relaxed">
+        Discover the best flights, compare prices, and book your next adventure — all in one place.
+      </p>
+    </div>
+
+    <!-- ── Search Form ── -->
+    <form id="search-form" class="relative z-10 w-full max-w-2xl glass rounded-2xl p-6 sm:p-8 shadow-2xl shadow-black/30">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <!-- Source -->
+        <div>
+          <label for="source" class="block text-xs font-semibold uppercase tracking-wider text-surface-200/60 mb-2">From</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-brand-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m10-10h-4M6 12H2"/></svg>
+            </span>
+            <input
+              type="text"
+              id="source"
+              name="source"
+              list="airports-list"
+              required
+              placeholder="City or airport (e.g. DEL, Delhi)"
+              class="search-input w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-surface-200/40 text-sm focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Destination -->
+        <div>
+          <label for="destination" class="block text-xs font-semibold uppercase tracking-wider text-surface-200/60 mb-2">To</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-brand-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </span>
+            <input
+              type="text"
+              id="destination"
+              name="destination"
+              list="airports-list"
+              required
+              placeholder="City or airport (e.g. CCU, Kolkata)"
+              class="search-input w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-surface-200/40 text-sm focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Airport Datalist Autocomplete -->
+        <datalist id="airports-list">
+          <option value="DEL">Delhi (DEL) — Indira Gandhi Intl</option>
+          <option value="BOM">Mumbai (BOM) — Chhatrapati Shivaji Intl</option>
+          <option value="BLR">Bengaluru / Bangalore (BLR) — Kempegowda Intl</option>
+          <option value="HYD">Hyderabad (HYD) — Rajiv Gandhi Intl</option>
+          <option value="CCU">Kolkata (CCU) — Netaji Subhas Chandra Bose Intl</option>
+          <option value="MAA">Chennai (MAA) — Chennai Intl</option>
+          <option value="AMD">Ahmedabad (AMD) — Sardar Vallabhbhai Patel Intl</option>
+          <option value="COK">Kochi / Cochin (COK) — Cochin Intl</option>
+          <option value="PNQ">Pune (PNQ) — Pune Airport</option>
+          <option value="GOI">Goa (GOI) — Goa Intl</option>
+        </datalist>
+      </div>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        id="btn-search"
+        class="btn-lift w-full py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-xl shadow-lg shadow-brand-600/30 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-surface-900 transition-all"
+      >
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+          Search Flights
+        </span>
+      </button>
+    </form>
+
+    <!-- Subtle trust badges -->
+    <div class="relative z-10 mt-8 flex items-center gap-6 text-xs text-surface-200/40">
+      <span class="flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        No hidden fees
+      </span>
+      <span class="flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        Instant confirmation
+      </span>
+      <span class="flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        24/7 support
+      </span>
+    </div>
+  </section>
+
+  <!-- ════════════════════ RESULTS SECTION ════════════════════ -->
+  <section class="max-w-6xl mx-auto px-6 py-16">
+    <div id="results-container">
+      <!-- Flight cards will be rendered here by search.js -->
+    </div>
+  </section>
+
+  <!-- ════════════════════ FOOTER ════════════════════ -->
+  <footer class="border-t border-white/5 py-8 text-center text-xs text-surface-200/30">
+    <p>&copy; 2026 AeroBook. All rights reserved.</p>
+  </footer>
+
+  <!-- Nav Auth Toggle -->
+  <script>
+    (function () {
+      const token = localStorage.getItem("token");
+      const guestNav = document.getElementById("nav-guest");
+      const userNav  = document.getElementById("nav-user");
+
+      if (token) {
+        // Swap to logged-in nav
+        guestNav.classList.add("hidden");
+        userNav.classList.remove("hidden");
+        userNav.classList.add("flex");
+
+        // Show Admin button if admin
+        const role = localStorage.getItem("role");
+        const adminBtn = document.getElementById("btn-admin-nav");
+        if (adminBtn && role === "admin") {
+          adminBtn.classList.remove("hidden");
+        }
+
+        // Wire up the logout button
+        document.getElementById("btn-logout-nav").addEventListener("click", function () {
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userName");
+          window.location.reload();
+        });
+      }
+
+    })();
+  </script>
+
+  <!-- Search Logic -->
+  <script src="js/search.js"></script>
+</body>
+</html>

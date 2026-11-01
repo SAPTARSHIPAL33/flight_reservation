@@ -1,6 +1,8 @@
-from fastapi import Depends, APIRouter, status, HTTPException
+from typing import Union
+from fastapi import Depends, APIRouter, status, HTTPException, Body
 from sqlalchemy.orm import Session
 from .. import schemas, database, model, oauth
+from ..waitinglist import priority_queue, allocate_waiting_seat_min_heap
 
 
 router = APIRouter(tags=["BOOKINGS"])
@@ -8,31 +10,64 @@ router = APIRouter(tags=["BOOKINGS"])
 
 @router.post("/book", status_code=status.HTTP_201_CREATED, response_model=list[schemas.BookingResponse])
 def book_flight(
-    booking: schemas.BookingCreate,
+    booking: Union[schemas.BookingCreate, list[int]] = Body(...),
     ticket_count: int = 1,
     db: Session = Depends(database.get_db),
     current_user: model.User = Depends(oauth.get_the_user),
 ):
-    # Verify the flight exists
-    flight = db.query(model.Flight).filter(model.Flight.flight_id == booking.flight_id).first()
-    if not flight:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Flight not found")
+    """
+    Process single or multi-leg flight bookings in a single transaction.
+    Accepts:
+      - {"flight_ids": [101, 204]}
+      - {"flight_id": 101}
+      - [101, 204]
+    """
+    if isinstance(booking, list):
+        flight_ids = booking
+    elif booking.flight_ids is not None:
+        flight_ids = booking.flight_ids
+    elif booking.flight_id is not None:
+        flight_ids = [booking.flight_id]
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="flight_ids array or flight_id is required",
+        )
 
+    if not flight_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="flight_ids list cannot be empty",
+        )
+
+    # 1. Verify all flights exist (atomic check before making any changes)
+    flights = []
+    for fid in flight_ids:
+        flight = db.query(model.Flight).filter(model.Flight.flight_id == fid).first()
+        if not flight:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Flight with ID {fid} not found",
+            )
+        flights.append(flight)
+
+    # 2. Process all legs in a single database transaction
     bookings = []
     for _ in range(ticket_count):
-        if flight.seats_available > 0:
-            flight.seats_available -= 1
-            ticket_status = "confirmed"
-        else:
-            ticket_status = "waiting_list"
+        for flight in flights:
+            if flight.seats_available > 0:
+                flight.seats_available -= 1
+                ticket_status = "confirmed"
+            else:
+                ticket_status = "waiting_list"
 
-        new_booking = model.Booking(
-            flight_id=booking.flight_id,
-            passenger_id=current_user.id,
-            status=ticket_status,
-        )
-        db.add(new_booking)
-        bookings.append(new_booking)
+            new_booking = model.Booking(
+                flight_id=flight.flight_id,
+                passenger_id=current_user.id,
+                status=ticket_status,
+            )
+            db.add(new_booking)
+            bookings.append(new_booking)
 
     db.commit()
     for ticket in bookings:
@@ -57,31 +92,17 @@ def cancel_booking(
     if booking.status == "cancelled":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Booking is already cancelled")
 
+    was_confirmed = (booking.status == "confirmed")
     booking.status = "cancelled"
 
-    flight = db.query(model.Flight).filter(model.Flight.flight_id == booking.flight_id).first()
-
-    # Promote the earliest waiting-list passenger (priority = oldest created_at)
-    next_in_line = (
-        db.query(model.Booking)
-        .filter(
-            model.Booking.flight_id == booking.flight_id,
-            model.Booking.status == "waiting_list",
-        )
-        .order_by(model.Booking.created_at.asc())
-        .first()
-    )
-
-    if next_in_line:
-        # A waiting passenger gets the freed seat — no net change to seats_available
-        next_in_line.status = "confirmed"
-    else:
-        # No one waiting; seat goes back to the pool
-        flight.seats_available += 1
+    # Allocate freed seat to waiting-list passenger using Min-Heap priority queue
+    if was_confirmed:
+        allocate_waiting_seat_min_heap(booking.flight_id, db)
 
     db.commit()
     db.refresh(booking)
     return booking
+
 
 
 @router.get("/my-bookings", status_code=status.HTTP_200_OK, response_model=list[schemas.BookingResponse])

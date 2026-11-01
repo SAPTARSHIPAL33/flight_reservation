@@ -360,10 +360,9 @@ def search_and_sort_flights(
     db: Session = Depends(database.get_db),
 ):
     """
-    Hybrid Search:
-    - Returns ALL available direct flights from source to destination.
-    - Plus ONLY the single fastest indirect flight calculated using Dijkstra's algorithm
-      with edge weights strictly set to 'Travel Time + Layover Time'.
+    Search and return ALL available flight routes (both direct and indirect).
+    Uses Dijkstra's algorithm to calculate the single fastest indirect route based strictly
+    on total time (flight duration + layover time), and appends "badge": "Recommended" to that itinerary.
     """
     src = resolve_airport_code(source, db)
     dst = resolve_airport_code(destination, db)
@@ -386,52 +385,39 @@ def search_and_sort_flights(
             detail="Source and destination cannot be the same.",
         )
 
-    # 1. Standard database query to fetch ALL direct flights from source to destination
-    direct_flights = (
-        db.query(model.Flight)
-        .filter(
-            model.Flight.source == src,
-            model.Flight.destination == dst,
-        )
-        .order_by(model.Flight.departure_time.asc())
-        .all()
-    )
-
-    itineraries: List[dict] = []
-    for flight in direct_flights:
-        itineraries.append({
-            "itinerary_id": str(flight.flight_id),
-            "source": flight.source,
-            "destination": flight.destination,
-            "departure_time": flight.departure_time,
-            "arrival_time": flight.arrival_time,
-            "price": flight.price,
-            "total_price": flight.price,
-            "seats_available": flight.seats_available,
-            "total_stops": 0,
-            "is_fastest_layover": False,
-            "badge": None,
-            "legs": [
-                {
-                    "flight_id": flight.flight_id,
-                    "source": flight.source,
-                    "destination": flight.destination,
-                    "departure_time": flight.departure_time,
-                    "arrival_time": flight.arrival_time,
-                    "price": flight.price,
-                    "seats_available": flight.seats_available,
-                }
-            ],
-        })
-
-    # 2. Query Flight table to build adjacency list in Python memory
     all_flights = db.query(model.Flight).all()
-    if all_flights:
-        adj = build_flight_adjacency_list(all_flights)
+    if not all_flights:
+        return []
 
-        # 3. Run Dijkstra's algorithm to find ONLY the single fastest indirect flight
-        fastest_indirect = find_fastest_indirect_dijkstra(src, dst, adj, max_layovers=max_layovers)
-        if fastest_indirect:
-            itineraries.append(fastest_indirect)
+    # 1. Build in-memory adjacency list from Flight table
+    adj = build_flight_adjacency_list(all_flights)
+
+    # 2. Graph traversal (DFS) to find ALL valid paths (direct and indirect, max 3 legs)
+    itineraries = find_all_flight_paths(src, dst, adj, max_layovers=max_layovers)
+    if not itineraries:
+        return []
+
+    # 3. Dijkstra algorithm to find the single fastest indirect route based strictly on total time
+    fastest_indirect = find_fastest_indirect_dijkstra(src, dst, adj, max_layovers=max_layovers)
+    fastest_id = fastest_indirect["itinerary_id"] if fastest_indirect else None
+
+    # 4. If an indirect itinerary matches the exact path found by Dijkstra, append "badge": "Recommended"
+    for it in itineraries:
+        if fastest_id and it["itinerary_id"] == fastest_id and it["total_stops"] > 0:
+            it["badge"] = "Recommended"
+            it["is_fastest_layover"] = True
+        else:
+            it["badge"] = None
+            it["is_fastest_layover"] = False
+
+    # Sort itineraries: direct flights first (0 stops), then Recommended layover, then other layovers
+    itineraries.sort(
+        key=lambda it: (
+            0 if it["total_stops"] == 0 else (1 if it.get("badge") == "Recommended" else 2),
+            it["total_stops"],
+            it["departure_time"] or datetime.min,
+            it["total_price"],
+        )
+    )
 
     return itineraries

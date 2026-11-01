@@ -44,28 +44,22 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
+      background: #ffffff !important;
     }
 
     .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.10);
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
     }
 
     .page-bg {
-      background: linear-gradient(135deg, #020617 0%, #0b1329 50%, #111d4a 100%);
+      background: #ffffff !important;
       min-height: 100vh;
     }
 
     .page-bg::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 85% 70%, rgba(52, 120, 255, 0.09) 0%, transparent 45%);
-      pointer-events: none;
+      display: none;
     }
 
     .form-input {
@@ -114,14 +108,14 @@
   </style>
 </head>
 
-<body class="page-bg text-white">
+<body class="page-bg text-slate-900">
 
   <!-- ════════════════════ NAVBAR ════════════════════ -->
-  <nav class="fixed top-0 inset-x-0 z-50 glass border-b border-white/5">
+  <nav class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
       <!-- Brand & Admin Badge -->
       <div class="flex items-center gap-3">
-        <a href="index.html" class="flex items-center gap-2">
+        <a href="index.html" class="flex items-center gap-2 group">
           <div
             class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/25">
             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -130,10 +124,10 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
-          <span class="text-xl font-bold tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+          <span class="text-xl font-bold tracking-tight text-slate-900">Aero<span class="text-brand-600">Book</span></span>
         </a>
         <span
-          class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-500/30 rounded-full">
+          class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 rounded-full">
           Admin Portal
         </span>
       </div>
@@ -141,15 +135,15 @@
       <!-- Nav Links -->
       <div class="flex items-center gap-3">
         <a href="index.html"
-          class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          class="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg transition-all duration-200">
           Public Search
         </a>
         <a href="dashboard.html"
-          class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          class="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg transition-all duration-200">
           Passenger Dashboard
         </a>
         <button id="btn-logout"
-          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-300 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-lg transition-all duration-200">
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-rose-600 border border-rose-300 hover:bg-rose-50 hover:border-rose-400 rounded-lg transition-all duration-200">
           Logout
         </button>
       </div>
@@ -221,18 +215,18 @@
     </div>
 
     <!-- Tabs Navigation -->
-    <div class="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
+    <div class="flex items-center gap-2 mb-6 border-b border-slate-200 pb-4">
       <button class="tab-btn active px-4 py-2 text-sm font-semibold rounded-xl border border-transparent transition-all"
         data-tab="flights">
         ✈ Flights Management
       </button>
       <button
-        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl border border-transparent transition-all"
+        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl border border-transparent transition-all"
         data-tab="airports">
         🌐 Airports (Route Graph)
       </button>
       <button
-        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-400 hover:text-white rounded-xl border border-transparent transition-all"
+        class="tab-btn px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 rounded-xl border border-transparent transition-all"
         data-tab="bookings">
         🎟 All Bookings
       </button>
@@ -242,7 +236,7 @@
     <div id="tab-content-flights" class="tab-content">
       <!-- Create Flight Button & Table Card -->
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">Active Flight Inventory</h2>
+        <h2 class="text-lg font-bold text-slate-900">Active Flight Inventory</h2>
         <button id="btn-open-create-flight"
           class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 rounded-xl shadow-lg shadow-amber-600/25 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -280,7 +274,7 @@
     <!-- ═══════════════ TAB 2: AIRPORTS ═══════════════ -->
     <div id="tab-content-airports" class="tab-content hidden">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">Airport Graph Nodes</h2>
+        <h2 class="text-lg font-bold text-slate-900">Airport Graph Nodes</h2>
         <button id="btn-open-create-airport"
           class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-xl shadow-lg shadow-brand-600/25 flex items-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -316,8 +310,8 @@
     <!-- ═══════════════ TAB 3: BOOKINGS ═══════════════ -->
     <div id="tab-content-bookings" class="tab-content hidden">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-bold text-white">System Passenger Bookings</h2>
-        <span class="text-xs text-slate-400">Real-time status & waiting list allocations</span>
+        <h2 class="text-lg font-bold text-slate-900">System Passenger Bookings</h2>
+        <span class="text-xs text-slate-500">Real-time status & waiting list allocations</span>
       </div>
 
       <div class="glass rounded-2xl overflow-hidden shadow-xl">

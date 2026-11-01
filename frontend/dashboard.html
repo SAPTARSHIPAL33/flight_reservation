@@ -42,6 +42,7 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
+      background: #ffffff !important;
     }
 
     .font-mono {
@@ -49,25 +50,18 @@
     }
 
     .glass {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
     }
 
     .page-bg {
-      background: linear-gradient(135deg, #020617 0%, #0f172a 50%, #142057 100%);
+      background: #ffffff !important;
       min-height: 100vh;
     }
 
     .page-bg::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 15% 25%, rgba(52, 120, 255, 0.10) 0%, transparent 50%),
-        radial-gradient(circle at 85% 75%, rgba(89, 159, 255, 0.07) 0%, transparent 45%);
-      pointer-events: none;
+      display: none;
     }
 
     /* Spinner */
@@ -117,31 +111,31 @@
   </style>
 </head>
 
-<body class="page-bg text-white">
+<body class="page-bg text-slate-900">
 
   <!-- ════════════════════ NAVBAR ════════════════════ -->
-  <nav class="fixed top-0 inset-x-0 z-50 glass border-b border-white/5">
+  <nav class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
 
       <!-- Brand -->
-      <a href="index.html" id="brand-logo" class="flex items-center gap-2">
+      <a href="index.html" id="brand-logo" class="flex items-center gap-2 group">
         <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M6 12L3.269 3.125A59.768 59.768 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5" />
           </svg>
         </div>
-        <span class="text-xl font-bold tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+        <span class="text-xl font-bold tracking-tight text-slate-900">Aero<span class="text-brand-600">Book</span></span>
       </a>
 
       <!-- Nav Actions -->
       <div class="flex items-center gap-3">
         <a href="admin.html" id="link-admin"
-          class="hidden items-center gap-1.5 px-4 py-2 text-sm font-semibold text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg transition-all duration-200">
+          class="hidden items-center gap-1.5 px-4 py-2 text-sm font-semibold text-amber-700 border border-amber-300 bg-amber-50 hover:bg-amber-100 rounded-lg transition-all duration-200">
           Admin Portal
         </a>
         <a href="index.html" id="link-search"
-          class="hidden sm:flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+          class="hidden sm:flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg transition-all duration-200">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -149,7 +143,7 @@
           Search Flights
         </a>
         <button id="btn-logout"
-          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-300 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-lg transition-all duration-200">
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-rose-600 border border-rose-300 hover:bg-rose-50 hover:border-rose-400 rounded-lg transition-all duration-200">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -232,17 +226,17 @@
     <section id="active-itineraries-section" class="mb-14">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white">Active Itineraries</h2>
-            <p class="text-xs text-slate-400">Confirmed upcoming journeys ready for departure</p>
+            <h2 class="text-xl font-bold text-slate-900">Active Itineraries</h2>
+            <p class="text-xs text-slate-500">Confirmed upcoming journeys ready for departure</p>
           </div>
         </div>
-        <span id="badge-active" class="px-3 py-1 text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 rounded-full">
+        <span id="badge-active" class="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
           0 Journeys
         </span>
       </div>
@@ -254,17 +248,17 @@
     <section id="waitlist-tracker-section" class="mb-14">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white">Waitlist Tracker</h2>
-            <p class="text-xs text-slate-400">Automated Min-Heap queue promotion upon seat cancellations</p>
+            <h2 class="text-xl font-bold text-slate-900">Waitlist Tracker</h2>
+            <p class="text-xs text-slate-500">Automated Min-Heap queue promotion upon seat cancellations</p>
           </div>
         </div>
-        <span id="badge-waitlist" class="px-3 py-1 text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25 rounded-full">
+        <span id="badge-waitlist" class="px-3 py-1 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-full">
           0 In Queue
         </span>
       </div>
@@ -276,17 +270,17 @@
     <section id="travel-history-section" class="mb-10">
       <div class="flex items-center justify-between mb-5">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-slate-500/15 border border-slate-500/25 flex items-center justify-center text-slate-400">
+          <div class="w-8 h-8 rounded-lg bg-slate-500/15 border border-slate-500/25 flex items-center justify-center text-slate-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-slate-300">Travel History</h2>
+            <h2 class="text-xl font-bold text-slate-900">Travel History</h2>
             <p class="text-xs text-slate-500">Archived past flights and cancelled journeys</p>
           </div>
         </div>
-        <span id="badge-history" class="px-3 py-1 text-xs font-bold text-slate-400 bg-slate-500/15 border border-slate-500/25 rounded-full">
+        <span id="badge-history" class="px-3 py-1 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 rounded-full">
           0 Records
         </span>
       </div>
@@ -300,7 +294,7 @@
   <div id="toast" role="status" aria-live="polite"></div>
 
   <!-- ════════════════════ FOOTER ════════════════════ -->
-  <footer class="border-t border-white/5 py-8 text-center text-xs text-slate-600">
+  <footer class="border-t border-slate-200 py-8 text-center text-xs text-slate-500 bg-white">
     <p>&copy; 2026 AeroBook. All rights reserved.</p>
   </footer>
 

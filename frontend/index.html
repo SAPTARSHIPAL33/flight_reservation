@@ -51,34 +51,23 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Inter', system-ui, sans-serif; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #ffffff !important; color: #0f172a; }
 
-    /* Animated gradient background */
+    /* Clean full white background */
     .hero-gradient {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #142057 70%, #19328f 100%);
+      background: #ffffff !important;
       position: relative;
       overflow: hidden;
     }
     .hero-gradient::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 20% 50%, rgba(52, 120, 255, 0.15) 0%, transparent 50%),
-                  radial-gradient(circle at 80% 20%, rgba(89, 159, 255, 0.1) 0%, transparent 40%),
-                  radial-gradient(circle at 60% 80%, rgba(27, 87, 245, 0.08) 0%, transparent 45%);
-      animation: pulseGlow 8s ease-in-out infinite alternate;
-    }
-    @keyframes pulseGlow {
-      0%   { opacity: 0.6; transform: scale(1); }
-      100% { opacity: 1;   transform: scale(1.05); }
+      display: none;
     }
 
-    /* Glassmorphism card */
+    /* High contrast flight card */
     .glass {
-      background: rgba(255, 255, 255, 0.07);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
     }
 
     /* Floating dots decoration */
@@ -137,10 +126,10 @@
   </style>
 </head>
 
-<body class="bg-surface-950 text-white min-h-screen">
+<body class="bg-white text-surface-900 min-h-screen">
 
   <!-- ════════════════════ NAVBAR ════════════════════ -->
-  <nav id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+  <nav id="navbar" class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
       <!-- Brand -->
       <a href="index.html" id="brand-logo" class="flex items-center gap-2 group">
@@ -149,13 +138,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.768 59.768 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5" />
           </svg>
         </div>
-        <span class="text-xl font-bold tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+        <span class="text-xl font-bold tracking-tight text-slate-900">Aero<span class="text-brand-600">Book</span></span>
       </a>
 
       <!-- Auth Buttons (toggled by nav-auth.js snippet below) -->
       <div id="nav-guest" class="flex items-center gap-3">
         <a href="login.html" id="btn-login"
-           class="px-5 py-2 text-sm font-medium text-surface-200 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+           class="px-5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg transition-all duration-200">
           Log In
         </a>
         <a href="signup.html" id="btn-signup"
@@ -167,15 +156,15 @@
       <!-- Logged-in nav (hidden by default, shown when token exists) -->
       <div id="nav-user" class="hidden items-center gap-3">
         <a href="admin.html" id="btn-admin-nav"
-           class="hidden px-4 py-2 text-sm font-semibold text-amber-300 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 rounded-lg transition-all duration-200">
+           class="hidden px-4 py-2 text-sm font-semibold text-amber-700 border border-amber-500/40 bg-amber-50 hover:bg-amber-100 rounded-lg transition-all duration-200">
           Admin Portal
         </a>
         <a href="dashboard.html" id="btn-dashboard"
-           class="px-5 py-2 text-sm font-medium text-surface-200 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all duration-200">
+           class="px-5 py-2 text-sm font-semibold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg transition-all duration-200">
           Dashboard
         </a>
         <button id="btn-logout-nav"
-                class="px-5 py-2 text-sm font-semibold text-red-300 border border-red-500/20 hover:bg-red-500/10 hover:border-red-500/40 rounded-lg transition-all duration-200">
+                class="px-5 py-2 text-sm font-semibold text-rose-600 border border-rose-300 hover:bg-rose-50 hover:border-rose-400 rounded-lg transition-all duration-200">
           Logout
         </button>
       </div>
@@ -184,22 +173,17 @@
 
 
   <!-- ════════════════════ HERO SECTION ════════════════════ -->
-  <section class="hero-gradient min-h-[92vh] flex flex-col items-center justify-center px-6 pt-24 pb-16 relative">
-    <!-- Decorative floating dots -->
-    <div class="dot w-3 h-3" style="top:18%; left:12%;"></div>
-    <div class="dot w-2 h-2" style="top:30%; right:15%;"></div>
-    <div class="dot w-4 h-4" style="bottom:25%; left:22%;"></div>
-
+  <section class="hero-gradient min-h-[92vh] flex flex-col items-center justify-center px-6 pt-24 pb-16 relative bg-white">
     <!-- Tagline -->
     <div class="relative z-10 text-center mb-10 max-w-3xl">
-      <p class="inline-block px-4 py-1.5 mb-6 text-xs font-semibold uppercase tracking-widest text-brand-300 bg-brand-500/10 border border-brand-500/20 rounded-full">
+      <p class="inline-block px-4 py-1.5 mb-6 text-xs font-bold uppercase tracking-widest text-brand-600 bg-brand-50 border border-brand-200 rounded-full">
         ✈ Smart Flight Search
       </p>
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
+      <h1 class="text-4xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight text-slate-900">
         Your Journey Starts<br/>
-        <span class="bg-gradient-to-r from-brand-400 via-brand-300 to-cyan-400 bg-clip-text text-transparent">With a Single Search</span>
+        <span class="bg-gradient-to-r from-brand-600 via-brand-500 to-cyan-600 bg-clip-text text-transparent">With a Single Search</span>
       </h1>
-      <p class="mt-5 text-lg text-surface-200/80 max-w-xl mx-auto leading-relaxed">
+      <p class="mt-5 text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
         Discover the best flights, compare prices, and book your next adventure — all in one place.
       </p>
     </div>
@@ -274,31 +258,31 @@
     </form>
 
     <!-- Subtle trust badges -->
-    <div class="relative z-10 mt-8 flex items-center gap-6 text-xs text-surface-200/40">
+    <div class="relative z-10 mt-8 flex items-center gap-6 text-xs text-slate-500 font-semibold">
       <span class="flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
         No hidden fees
       </span>
       <span class="flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
         Instant confirmation
       </span>
       <span class="flex items-center gap-1.5">
-        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
         24/7 support
       </span>
     </div>
   </section>
 
   <!-- ════════════════════ RESULTS SECTION ════════════════════ -->
-  <section class="max-w-6xl mx-auto px-6 py-16">
+  <section class="max-w-6xl mx-auto px-6 py-16 bg-white">
     <div id="results-container">
       <!-- Flight cards will be rendered here by search.js -->
     </div>
   </section>
 
   <!-- ════════════════════ FOOTER ════════════════════ -->
-  <footer class="border-t border-white/5 py-8 text-center text-xs text-surface-200/30">
+  <footer class="border-t border-slate-200 py-8 text-center text-xs text-slate-500 bg-white">
     <p>&copy; 2026 AeroBook. All rights reserved.</p>
   </footer>
 

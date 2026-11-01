@@ -34,27 +34,20 @@
 
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: 'Inter', system-ui, sans-serif; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: #ffffff !important; }
 
     .page-bg {
-      background: linear-gradient(135deg, #020617 0%, #0f172a 45%, #142057 100%);
+      background: #ffffff !important;
       min-height: 100vh;
     }
     .page-bg::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 20% 30%, rgba(52,120,255,0.12) 0%, transparent 55%),
-        radial-gradient(circle at 80% 70%, rgba(89,159,255,0.08) 0%, transparent 45%);
-      pointer-events: none;
+      display: none;
     }
 
     .glass {
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
     }
 
     .auth-input {
@@ -113,7 +106,7 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.768 59.768 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/>
       </svg>
     </div>
-    <span class="text-xl font-bold text-white tracking-tight">Aero<span class="text-brand-400">Book</span></span>
+    <span class="text-xl font-bold text-slate-900 tracking-tight">Aero<span class="text-brand-600">Book</span></span>
   </a>
 
   <!-- Card -->
@@ -192,7 +185,7 @@
     </p>
   </div>
 
-  <p class="mt-8 text-xs text-slate-600">&copy; 2026 AeroBook. All rights reserved.</p>
+  <p class="mt-8 text-xs text-slate-500">&copy; 2026 AeroBook. All rights reserved.</p>
 
   <script src="js/auth.js"></script>
 </body>

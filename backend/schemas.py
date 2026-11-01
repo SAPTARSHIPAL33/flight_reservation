@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -107,6 +107,7 @@ class LegResponse(BaseModel):
     arrival_time: datetime
     price: float
     seats_available: int
+    current_waitlist_length: Optional[int] = 0
 
     class Config:
         from_attributes = True
@@ -123,6 +124,7 @@ class ItineraryResponse(BaseModel):
     total_stops: int
     is_fastest_layover: Optional[bool] = False
     badge: Optional[str] = None
+    current_waitlist_length: Optional[int] = 0
     legs: list[LegResponse]
 
     class Config:
@@ -137,10 +139,57 @@ class BookingCreate(BaseModel):
     flight_ids: Optional[list[int]] = None
 
 class BookingResponse(BaseModel):
-    booking_id:int
-    flight_id:int
-    passenger_id:int
-    status:str
+    booking_id: int
+    flight_id: int
+    passenger_id: int
+    status: str
+    pnr: Optional[str] = None
+    created_at: Optional[datetime] = None
+    waitlist_position: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ─── Dashboard & Multi-Leg Journey Schemas ───
+
+class JourneyLeg(BaseModel):
+    booking_id: int
+    flight_id: int
+    source: str
+    destination: str
+    departure_time: datetime
+    arrival_time: datetime
+    price: float
+    status: str
+    current_position: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class JourneyResponse(BaseModel):
+    pnr: str
+    source: str
+    destination: str
+    departure_time: datetime
+    arrival_time: datetime
+    total_stops: int
+    layovers: List[str] = []
+    total_price: float
+    status: str
+    created_at: Optional[datetime] = None
+    legs: List[JourneyLeg] = []
+    current_position: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+class DashboardResponse(BaseModel):
+    upcoming_flights: List[JourneyResponse] = []
+    waitlisted_tickets: List[JourneyResponse] = []
+    past_flights: List[JourneyResponse] = []
 
     class Config:
         from_attributes = True

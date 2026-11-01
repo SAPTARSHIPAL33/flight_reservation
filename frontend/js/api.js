@@ -2,9 +2,13 @@
 //  api.js — Centralized fetch utility with JWT auth
 // ═══════════════════════════════════════════════════════
 
-const API_BASE = (typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
-  ? window.location.origin
-  : "http://127.0.0.1:8000";
+// Safely declare global API_BASE without collision across multiple scripts
+if (typeof window !== "undefined" && !window.API_BASE) {
+  window.API_BASE = ((window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
+    ? window.location.origin
+    : "http://127.0.0.1:8000";
+}
+var API_BASE = (typeof window !== "undefined" && window.API_BASE) ? window.API_BASE : "http://127.0.0.1:8000";
 
 /**
  * A wrapper around fetch() that automatically:

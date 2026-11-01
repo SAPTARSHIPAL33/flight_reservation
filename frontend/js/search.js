@@ -2,9 +2,11 @@
 //  search.js — Flight Search & Booking (Direct & Multi-Leg)
 // ═══════════════════════════════════════════════════════
 
-const API_BASE = (typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
-  ? window.location.origin
-  : "http://127.0.0.1:8000";
+var API_BASE = (typeof window !== "undefined" && window.API_BASE)
+  ? window.API_BASE
+  : ((typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
+      ? window.location.origin
+      : "http://127.0.0.1:8000");
 
 // ── DOM references ──────────────────────────────────────
 const searchForm = document.getElementById("search-form");
@@ -69,21 +71,25 @@ async function bookFlight(flightIds, btn) {
       return;
     }
 
-    const data = await resp.json();
+    const data = await resp.json().catch(() => ({}));
 
     if (!resp.ok) {
-      alert(data.detail || "Booking failed. Please try again.");
+      const errorMsg = data.detail || (typeof data === "string" ? data : "Booking failed. Please try again.");
+      console.error("Booking error details:", data);
+      alert(errorMsg);
       btn.disabled = false;
       btn.innerHTML = originalHTML;
       return;
     }
 
-    // Success — check if any ticket is waiting_list
+    // Success — check if any ticket is waiting_list or pending
     const bookings = Array.isArray(data) ? data : [data];
-    const isWaitlist = bookings.some((b) => b?.status === "waiting_list");
+    const isWaitlist = bookings.some((b) => b?.status === "waiting_list" || b?.status === "pending");
+    const assignedWl = bookings.find((b) => b?.waitlist_position)?.waitlist_position;
+    const wlText = assignedWl ? ` (WL-${assignedWl})` : "";
 
     btn.innerHTML = isWaitlist
-      ? `⏳ Added to Waitlist`
+      ? `⏳ Added to Waitlist${wlText}! View in Dashboard`
       : `✓ Booked! Go to Dashboard`;
     btn.className = btn.className
       .replace(/from-\S+/g, "")
@@ -94,16 +100,12 @@ async function bookFlight(flightIds, btn) {
       isWaitlist ? "bg-amber-600" : "bg-emerald-600"
     );
 
-    if (!isWaitlist) {
-      btn.addEventListener(
-        "click",
-        () => {
-          window.location.href = "dashboard.html";
-        },
-        { once: true }
-      );
-      btn.disabled = false; // allow click to go to dashboard
-    }
+    // Replace the button's click behavior to cleanly navigate to the dashboard
+    btn.onclick = (e) => {
+      if (e) e.stopPropagation();
+      window.location.href = "dashboard.html";
+    };
+    btn.disabled = false; // allow click to go to dashboard
   } catch (err) {
     console.error("Booking error:", err);
     alert("Could not reach the server. Make sure the backend is running.");
@@ -287,13 +289,20 @@ function buildFlightCard(itinerary, index) {
   // Extract all associated flight IDs for multi-leg booking
   const flightIds = legs.map((l) => l.flight_id).filter(Boolean);
 
-  // Available seats: min across all legs
+  // Available seats & waitlist queue length
   const minSeats = itinerary.seats_available !== undefined
     ? itinerary.seats_available
     : Math.min(...legs.map((l) => (l.seats_available !== undefined ? l.seats_available : 0)));
 
+  const currentWaitlistLength = itinerary.current_waitlist_length !== undefined
+    ? Number(itinerary.current_waitlist_length)
+    : (Number(legs[0]?.current_waitlist_length) || 0);
+
+  const nextWaitlistPosition = currentWaitlistLength + 1;
+  const waitlistLabel = `Join Waitlist (WL-${nextWaitlistPosition})`;
+
   const hasSeats = minSeats > 0;
-  const btnLabel = hasSeats ? "Book Now" : "Join Waitlist";
+  const btnLabel = hasSeats ? "Book Now" : waitlistLabel;
   const btnClasses = hasSeats
     ? "bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-brand-600/25"
     : "bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 shadow-amber-600/25";
@@ -367,8 +376,8 @@ function buildFlightCard(itinerary, index) {
           </span>
         </div>
 
-        <span class="text-xs font-medium ${seatColor}">
-          ${hasSeats ? minSeats + " seat" + (minSeats > 1 ? "s" : "") + " left" : "No seats — waitlist open"}
+        <span class="text-xs font-semibold ${seatColor}">
+          ${hasSeats ? minSeats + " seat" + (minSeats > 1 ? "s" : "") + " left" : waitlistLabel}
         </span>
       </div>
 

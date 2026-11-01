@@ -28,7 +28,6 @@ class priority_queue:
             else:
                 break
 
-    # EDITED: Accept booking_id and the timestamp (priority_score)
     def enqueue(self, booking_id, priority_score):
         # Create a tuple: (DateTime, tie_breaker, ID)
         element = (priority_score, self.entry_count, booking_id)
@@ -37,7 +36,6 @@ class priority_queue:
         self.heap.append(element)
         self.heapify_up(len(self.heap) - 1)
     
-    # EDITED: Return only the booking_id for the database to use
     def dequeue(self):
         if len(self.heap) == 0:
             return None
@@ -52,17 +50,16 @@ class priority_queue:
         # The booking_id is at index 2 of the tuple
         return root_value[2]
         
-    # ADDED: Helper for the FastAPI while loop
     def is_empty(self):
         return len(self.heap) == 0
 
 
 def allocate_waiting_seat_min_heap(flight_id: int, db):
     """
-    Finds the highest-priority waiting-list passenger (earliest created_at timestamp)
-    for the specified flight using the Min-Heap priority queue, and promotes them to 'confirmed'.
-    If no waiting-list passenger exists, increments seats_available on the flight.
-    Returns the promoted booking or None.
+    Checks the flight's Min-Heap priority queue for waitlisted passengers.
+    If waitlisted passengers exist (earliest request time has highest priority),
+    pops the highest-priority user, assigns them the newly freed seat,
+    and updates their booking status from 'Pending'/'waiting_list' to 'confirmed'.
     """
     from . import model
 
@@ -70,15 +67,12 @@ def allocate_waiting_seat_min_heap(flight_id: int, db):
         db.query(model.Booking)
         .filter(
             model.Booking.flight_id == flight_id,
-            model.Booking.status == "waiting_list",
+            model.Booking.status.in_(["waiting_list", "pending", "Pending", "WAITLIST"]),
         )
         .all()
     )
 
     if not waiting_bookings:
-        flight = db.query(model.Flight).filter(model.Flight.flight_id == flight_id).first()
-        if flight:
-            flight.seats_available += 1
         return None
 
     pq = priority_queue()
@@ -90,5 +84,69 @@ def allocate_waiting_seat_min_heap(flight_id: int, db):
         promoted = db.query(model.Booking).filter(model.Booking.booking_id == promoted_id).first()
         if promoted:
             promoted.status = "confirmed"
+            # Assign the newly freed seat to the promoted passenger
+            flight = db.query(model.Flight).filter(model.Flight.flight_id == flight_id).first()
+            if flight and flight.seats_available > 0:
+                flight.seats_available -= 1
             return promoted
     return None
+
+
+def get_flight_waitlist_length(flight_id: int, db) -> int:
+    """
+    Return the total number of passengers currently in the Min-Heap waitlist for a flight.
+    """
+    from . import model
+
+    return (
+        db.query(model.Booking)
+        .filter(
+            model.Booking.flight_id == flight_id,
+            model.Booking.status.in_(["waiting_list", "pending", "Pending", "WAITLIST"]),
+        )
+        .count()
+    )
+
+
+def get_waitlist_ranks_for_flight(flight_id: int, db) -> dict:
+    """
+    Builds the Min-Heap priority queue from all active waitlist bookings for a flight.
+    Pops passengers one-by-one by earliest request time to dynamically determine each booking's 1-based rank.
+    If passengers ahead cancel, subsequent passengers dynamically move up in rank (e.g. WL-5 to WL-3).
+    Returns: dict mapping booking_id -> current 1-based integer rank {booking_id: rank}
+    """
+    from . import model
+
+    waiting_bookings = (
+        db.query(model.Booking)
+        .filter(
+            model.Booking.flight_id == flight_id,
+            model.Booking.status.in_(["waiting_list", "pending", "Pending", "WAITLIST"]),
+        )
+        .all()
+    )
+
+    if not waiting_bookings:
+        return {}
+
+    pq = priority_queue()
+    for wb in waiting_bookings:
+        pq.enqueue(wb.booking_id, wb.created_at)
+
+    ranks = {}
+    current_rank = 1
+    while not pq.is_empty():
+        bid = pq.dequeue()
+        if bid is not None:
+            ranks[bid] = current_rank
+            current_rank += 1
+
+    return ranks
+
+
+def get_booking_waitlist_position(flight_id: int, booking_id: int, db) -> int | None:
+    """
+    Calculates a waitlisted booking's exact current 1-based rank in its flight's Min-Heap queue.
+    """
+    ranks = get_waitlist_ranks_for_flight(flight_id, db)
+    return ranks.get(booking_id)

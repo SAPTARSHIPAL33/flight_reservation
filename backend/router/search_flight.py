@@ -402,6 +402,14 @@ def search_and_sort_flights(
     fastest_id = fastest_indirect["itinerary_id"] if fastest_indirect else None
 
     # 4. If an indirect itinerary matches the exact path found by Dijkstra, append "badge": "Recommended"
+    from sqlalchemy import func
+    waitlist_counts = dict(
+        db.query(model.Booking.flight_id, func.count(model.Booking.booking_id))
+        .filter(model.Booking.status.in_(["waiting_list", "pending", "Pending", "WAITLIST"]))
+        .group_by(model.Booking.flight_id)
+        .all()
+    )
+
     for it in itineraries:
         if fastest_id and it["itinerary_id"] == fastest_id and it["total_stops"] > 0:
             it["badge"] = "Recommended"
@@ -409,6 +417,21 @@ def search_and_sort_flights(
         else:
             it["badge"] = None
             it["is_fastest_layover"] = False
+
+        # Calculate current_waitlist_length per leg and overall itinerary
+        leg_wl_counts = []
+        for leg in it.get("legs", []):
+            if leg.get("seats_available", 0) <= 0:
+                leg_wl = waitlist_counts.get(leg["flight_id"], 0)
+            else:
+                leg_wl = 0
+            leg["current_waitlist_length"] = leg_wl
+            leg_wl_counts.append(leg_wl)
+
+        if it.get("seats_available", 0) <= 0:
+            it["current_waitlist_length"] = max(leg_wl_counts) if leg_wl_counts else 0
+        else:
+            it["current_waitlist_length"] = 0
 
     # Sort itineraries: direct flights first (0 stops), then Recommended layover, then other layovers
     itineraries.sort(

@@ -44,6 +44,6 @@ class Booking(Base):
     flight_id = Column(Integer, ForeignKey("flights.flight_id"), nullable=False)
     passenger_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     status = Column(String, default="confirmed") 
-    created_at=Column(DateTime,nullable=False,default=datetime.now)
+    created_at = Column(DateTime, nullable=False, default=datetime.now)
     flight = relationship("Flight", back_populates="bookings")
     passenger = relationship("User", back_populates="bookings")

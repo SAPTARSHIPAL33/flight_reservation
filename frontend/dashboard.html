@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Dashboard — AeroBook</title>
-  <meta name="description" content="View and manage your AeroBook flight bookings." />
+  <title>Passenger Dashboard — AeroBook</title>
+  <meta name="description" content="View and manage your multi-leg flight bookings, waitlist priority status, and travel history." />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -32,13 +32,11 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
     rel="stylesheet" />
 
   <style>
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       box-sizing: border-box;
     }
 
@@ -46,11 +44,15 @@
       font-family: 'Inter', system-ui, sans-serif;
     }
 
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     .glass {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.10);
+      border: 1px solid rgba(255, 255, 255, 0.09);
     }
 
     .page-bg {
@@ -79,25 +81,34 @@
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
     /* Booking card entrance */
     @keyframes cardIn {
       from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(18px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
       }
     }
 
-    /* Toast initial state */
+    .animate-card-in {
+      animation: cardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    /* Card exit transition on dynamic cancel */
+    .card-removing {
+      opacity: 0 !important;
+      transform: scale(0.95) translateY(-10px) !important;
+      transition: all 0.35s ease-out !important;
+      pointer-events: none;
+    }
+
+    /* Toast */
     #toast {
       opacity: 0;
       transform: translateY(12px);
@@ -114,8 +125,7 @@
 
       <!-- Brand -->
       <a href="index.html" id="brand-logo" class="flex items-center gap-2">
-        <div
-          class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M6 12L3.269 3.125A59.768 59.768 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5" />
@@ -155,52 +165,133 @@
   <main class="max-w-7xl mx-auto px-6 pt-28 pb-20 relative z-10">
 
     <!-- Profile / Welcome Banner -->
-    <div class="glass rounded-2xl p-7 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+    <div class="glass rounded-2xl p-7 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 border border-white/10 shadow-2xl">
       <div class="flex items-center gap-5">
         <!-- Avatar -->
-        <div
-          class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-xl shadow-brand-500/20 shrink-0">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-xl shadow-brand-500/25 shrink-0 ring-1 ring-white/20">
           <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
         <div>
-          <p class="text-xs font-semibold uppercase tracking-widest text-brand-400 mb-1">Passenger</p>
-          <h1 class="text-xl font-bold text-white">Welcome to your Dashboard</h1>
-          <p class="text-sm text-slate-400 mt-0.5">Manage your flights and bookings below.</p>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand-300 bg-brand-500/20 border border-brand-400/30 rounded-full">Passenger Dashboard</span>
+          </div>
+          <h1 class="text-2xl font-extrabold text-white mt-1">My Journeys &amp; Itineraries</h1>
+          <p class="text-xs text-slate-400 mt-0.5">Track multi-leg routes, Min-Heap waitlist priority, and travel records.</p>
         </div>
       </div>
 
-      <!-- Quick link -->
-      <a href="index.html"
-        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-xl shadow-lg shadow-brand-600/25 transition-all shrink-0">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-        </svg>
-        Search Flights
-      </a>
-    </div>
-
-    <!-- My Bookings Section -->
-    <section id="bookings-section">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-white">My Bookings</h2>
-          <p class="text-sm text-slate-400 mt-1">All your tickets in one place</p>
-        </div>
-        <button onclick="loadBookings()"
-          class="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-all">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <!-- Quick Action buttons -->
+      <div class="flex items-center gap-3">
+        <button onclick="loadDashboard()"
+          class="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:text-white border border-white/10 hover:border-white/25 rounded-xl transition-all">
+          <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           Refresh
         </button>
+        <a href="index.html"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 rounded-xl shadow-lg shadow-brand-600/25 transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+          </svg>
+          Search Flights
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Category Counters Bar -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+      <div class="glass rounded-xl p-4 flex items-center gap-3 border border-emerald-500/20">
+        <div class="w-3 h-3 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse"></div>
+        <div>
+          <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Active Itineraries</span>
+          <p id="count-active" class="text-lg font-bold text-white leading-none mt-1">0</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-4 flex items-center gap-3 border border-amber-500/20">
+        <div class="w-3 h-3 rounded-full bg-amber-400 shadow-sm shadow-amber-400 animate-pulse"></div>
+        <div>
+          <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Waitlist Tracker</span>
+          <p id="count-waitlist" class="text-lg font-bold text-white leading-none mt-1">0</p>
+        </div>
+      </div>
+      <div class="glass rounded-xl p-4 flex items-center gap-3 border border-slate-500/20">
+        <div class="w-3 h-3 rounded-full bg-slate-400 shadow-sm shadow-slate-400"></div>
+        <div>
+          <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Travel History</span>
+          <p id="count-history" class="text-lg font-bold text-white leading-none mt-1">0</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════ SECTION 1: ACTIVE ITINERARIES ════════════════ -->
+    <section id="active-itineraries-section" class="mb-14">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Active Itineraries</h2>
+            <p class="text-xs text-slate-400">Confirmed upcoming journeys ready for departure</p>
+          </div>
+        </div>
+        <span id="badge-active" class="px-3 py-1 text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/25 rounded-full">
+          0 Journeys
+        </span>
       </div>
 
-      <!-- Bookings will be rendered here by dashboard.js -->
-      <div id="bookings-container"></div>
+      <div id="upcoming-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- ════════════════ SECTION 2: WAITLIST TRACKER ════════════════ -->
+    <section id="waitlist-tracker-section" class="mb-14">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-white">Waitlist Tracker</h2>
+            <p class="text-xs text-slate-400">Automated Min-Heap queue promotion upon seat cancellations</p>
+          </div>
+        </div>
+        <span id="badge-waitlist" class="px-3 py-1 text-xs font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25 rounded-full">
+          0 In Queue
+        </span>
+      </div>
+
+      <div id="waitlist-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </section>
+
+    <!-- ════════════════ SECTION 3: TRAVEL HISTORY ════════════════ -->
+    <section id="travel-history-section" class="mb-10">
+      <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-slate-500/15 border border-slate-500/25 flex items-center justify-center text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-300">Travel History</h2>
+            <p class="text-xs text-slate-500">Archived past flights and cancelled journeys</p>
+          </div>
+        </div>
+        <span id="badge-history" class="px-3 py-1 text-xs font-bold text-slate-400 bg-slate-500/15 border border-slate-500/25 rounded-full">
+          0 Records
+        </span>
+      </div>
+
+      <div id="history-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </section>
 
   </main>

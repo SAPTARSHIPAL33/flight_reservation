@@ -20,39 +20,46 @@ from sqlalchemy.orm import Session
 try:
     from .database import base, engine, get_db, SessionLocal
     from .router import search_flight, user, auth, admin, booking
-    from . import model, schemas
+    from . import model, schemas, oauth
 
     from .dijsktra import AirportGraph
     from .waitinglist import priority_queue
 except (ImportError, ValueError):
     from backend.database import base, engine, get_db, SessionLocal
     from backend.router import search_flight, user, auth, admin, booking
-    from backend import model, schemas
+    from backend import model, schemas, oauth
     from backend.dijsktra import AirportGraph
     from backend.waitinglist import priority_queue
 
-# Ensure database tables exist
-model.base.metadata.create_all(bind=engine)
+# Ensure database tables exist (safely catch if DB is connecting during startup)
+try:
+    model.base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Database table check notice: {e}")
 
 app = FastAPI(title="Flight Reservation API")
 
 @app.on_event("startup")
 def check_and_seed_db():
-    """Ensure database has flights on startup so layover routes always work even after system restart."""
+    """Ensure database has flights on startup so routes always work, preserving all user bookings."""
     db = SessionLocal()
     try:
         count = db.query(model.Flight).count()
         if count == 0:
             print("Database has no flights. Automatically seeding coordinated flight network...")
             import seed_db
-            seed_db.seed()
+            seed_db.seed(clean=False)
         else:
-            # Check if any flights exist in the future; if all flights are in the past, refresh schedules
+            # Check if any flights exist in the future; if all flights are in the past, roll schedules forward WITHOUT deleting any user data
             latest = db.query(model.Flight.departure_time).order_by(model.Flight.departure_time.desc()).first()
             if latest and latest[0] < datetime.now():
-                print("Flight schedules are in the past. Refreshing upcoming coordinated schedule...")
-                import seed_db
-                seed_db.seed()
+                from datetime import timedelta
+                delta_days = (datetime.now().date() - latest[0].date()).days + 1
+                for f in db.query(model.Flight).all():
+                    f.departure_time += timedelta(days=delta_days)
+                    f.arrival_time += timedelta(days=delta_days)
+                db.commit()
+                print(f"Shifted all flight schedules forward by {delta_days} day(s) while preserving user bookings!")
     except Exception as e:
         print(f"Startup database check: {e}")
     finally:
@@ -375,6 +382,15 @@ def search_flights_main(
     fastest_id = fastest_indirect["itinerary_id"] if fastest_indirect else None
 
     # 4. If an indirect itinerary matches the exact path found by Dijkstra, append "badge": "Recommended"
+    # Also calculate current_waitlist_length for flights/itineraries with seats_available == 0
+    from sqlalchemy import func
+    waitlist_counts = dict(
+        db.query(model.Booking.flight_id, func.count(model.Booking.booking_id))
+        .filter(model.Booking.status.in_(["waiting_list", "pending", "Pending", "WAITLIST"]))
+        .group_by(model.Booking.flight_id)
+        .all()
+    )
+
     for it in itineraries:
         if fastest_id and it["itinerary_id"] == fastest_id and it["total_stops"] > 0:
             it["badge"] = "Recommended"
@@ -382,6 +398,21 @@ def search_flights_main(
         else:
             it["badge"] = None
             it["is_fastest_layover"] = False
+
+        # Calculate current_waitlist_length per leg and overall itinerary
+        leg_wl_counts = []
+        for leg in it.get("legs", []):
+            if leg.get("seats_available", 0) <= 0:
+                leg_wl = waitlist_counts.get(leg["flight_id"], 0)
+            else:
+                leg_wl = 0
+            leg["current_waitlist_length"] = leg_wl
+            leg_wl_counts.append(leg_wl)
+
+        if it.get("seats_available", 0) <= 0:
+            it["current_waitlist_length"] = max(leg_wl_counts) if leg_wl_counts else 0
+        else:
+            it["current_waitlist_length"] = 0
 
     # Sort itineraries: direct flights first (0 stops), then Recommended layover, then other layovers
     itineraries.sort(
@@ -394,6 +425,36 @@ def search_flights_main(
     )
 
     return itineraries
+
+
+# ─── Dashboard & Booking Cancellation Endpoints ──────────────────────
+
+@app.get("/dashboard", status_code=status.HTTP_200_OK, response_model=schemas.DashboardResponse, tags=["DASHBOARD"])
+def get_dashboard_main(
+    db: Session = Depends(get_db),
+    current_user: model.User = Depends(oauth.get_the_user),
+):
+    """
+    Passenger Dashboard returning three categorized lists for the authenticated user:
+      - upcoming_flights: confirmed journeys departing in the future
+      - waitlisted_tickets: journeys with waitlisted/pending status
+      - past_flights: journeys departing in the past (or cancelled journeys)
+    Multi-leg journeys are grouped under their unique alphanumeric PNR.
+    """
+    return booking.get_passenger_dashboard(db=db, current_user=current_user)
+
+
+@app.delete("/bookings/{pnr}", status_code=status.HTTP_200_OK, tags=["BOOKINGS"])
+def cancel_booking_pnr_main(
+    pnr: str,
+    db: Session = Depends(get_db),
+    current_user: model.User = Depends(oauth.get_the_user),
+):
+    """
+    Cancel a journey identified by booking_id or PNR (e.g. '25' or 'PNR-00025').
+    Increments seats_available for all flights, and checks Min-Heap priority queue to promote waitlisted users.
+    """
+    return booking.cancel_journey(booking_ref=pnr, db=db, current_user=current_user)
 
 
 # ─── Include Routers ─────────────────────────────────────────────────

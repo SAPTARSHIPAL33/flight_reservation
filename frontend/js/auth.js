@@ -2,9 +2,11 @@
 //  auth.js — Login & Signup form handlers
 // ═══════════════════════════════════════════════════════
 
-const API_BASE = (typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
-  ? window.location.origin
-  : "http://127.0.0.1:8000";
+var API_BASE = (typeof window !== "undefined" && window.API_BASE)
+  ? window.API_BASE
+  : ((typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:") && window.location.port === "8000")
+      ? window.location.origin
+      : "http://127.0.0.1:8000");
 
 // ── Helpers ─────────────────────────────────────────────
 

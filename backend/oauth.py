@@ -40,6 +40,8 @@ def get_the_user(token:str=Depends(oauth2_scheme),db:Session=Depends(database.ge
             detail="Could not validate credentials", headers={"WWW-Authenticate":"Bearer"})
     info=verify_access_token(token,credentials_exception )
     user = db.query(model.User).filter(model.User.id==info.id).first()
+    if user is None:
+        raise credentials_exception
     return user
 
 def require_role(required_role: str):
